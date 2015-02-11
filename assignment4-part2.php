@@ -1,3 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+
+<form action="assignment4-part2.php" method="POST">
+<fieldset>
+<legend>Add Video</legend>
+<p>Name: <input type="text" name="videoName" ></p>
+<p>Category: <select name="videoCateg[]">
+<option value="none">none</option>
+<option value="action">action</option>
+<option value="comedy">comedy</option>
+<option value="drama">drama</option></select></p>
+<p>Length: <input type="number" name="length" min=0></p>
+<input type="submit" value="submit" name="addVideo">
+</fieldset>
+</form>
+
+
+</body>
+
+
+</html>
+
 <?php
 ini_set('display_errors', 'On');
 include 'storedInfo.php';
@@ -8,9 +33,15 @@ if ($mysqli->connect_errno) {
 } else {
 	echo "Connection works!<br>";
 }
-if(isset($_POST['videoName'])){
-	echo 'OK';
+
+if(isset($_POST['input'])){
+	echo 'name is set';
+	echo $_POST['input'];
+}else{
+	echo 'name is not set';
 }
+	
+
 
 /* if($mysqli->query("CREATE TABLE video_inventory(id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, name VARCHAR(255) NOT NULL UNIQUE, category VARCHAR(255), length INT UNSIGNED, rented BOOL NOT NULL DEFAULT FALSE)") === TRUE) {
 	printf("Table created.\n");
@@ -53,11 +84,9 @@ if(isset($_POST['addVideo'])){
 if (!($stmt = $mysqli->prepare("SELECT name, category, length, rented FROM video_inventory"))) {
     echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
 }
-
 if (!$stmt->execute()) {
     echo "Execute failed: (" . $mysqli->errno . ") " . $mysqli->error;
 }
-
 $out_name    = NULL;
 $out_cat = NULL;
 $out_leng =NULL;
@@ -66,35 +95,46 @@ if (!$stmt->bind_result($out_name, $out_cat, $out_leng, $out_rented)) {
     echo "Binding output parameters failed: (" . $stmt->errno . ") " . $stmt->error;
 }
 
-while ($stmt->fetch()) {
-    printf("name = %s, category = %s, length = %u, rented= %u \n", $out_name, $out_cat, $out_leng, $out_rented);
-}
+/* while ($stmt->fetch()) {
+	if ($out_rented == 'false') {
+		$out_rented = 'Available';
+	}else {
+		$out_rented = 'Checked out';
+	}
+	echo "<form method='post' action='assignment4-part2.php'>
+	<table><tr>
+	<td>$out_name</td><td>$out_cat</td><td>$out_leng</td><td>$out_rented</td>
+	</tr>
+	</table>
+	</form>";
+} */
+  echo '<table border="1"><tr>
+  <td>Name</td><td>Category</td><td>Length</td><td>Availability</td><td></td></tr>';
+	while ($stmt->fetch()) {
+	if ($out_rented == 'false') {
+		$out_rented = 'Available';
+	}else {
+		$out_rented = 'Checked out';
+	}
+		echo '<tr>';
+		echo '<td>' . $out_name;
+		echo '<td>' . $out_cat . '<td>' . $out_leng . '<td>' . $out_rented;
+		echo '<td>';
+		echo '<form method="POST" action="assignment4-part2.php" name=$out_name>';
+echo '<input type="hidden" name="input" value=' . $out_name;
+echo '>';
+		echo '<input type="submit" value="Delete"></form>';
+		echo '</td>';
+	}
+  
+  echo '</table>';
+  
+	
+	//$out_rented = "Available";
+	//printf("name = %s, category = %s, length = %u, rented= %s \n", $out_name, $out_cat, $out_leng, $out_rented);
+	
 
 
 
 
 ?>
-<!DOCTYPE html>
-<html>
-<body>
-
-
-<form action="assignment4-part2.php" method="POST">
-<fieldset>
-<legend>Add Video</legend>
-<p>Name: <input type="text" name="videoName" ></p>
-<p>Category: <select name="videoCateg[]">
-<option value="none">none</option>
-<option value="action">action</option>
-<option value="comedy">comedy</option>
-<option value="drama">drama</option></select></p>
-<p>Length: <input type="number" name="length" min=0></p>
-<input type="submit" value="submit" name="addVideo">
-</fieldset>
-</form>
-
-
-</body>
-
-
-</html>
