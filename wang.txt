@@ -9,3 +9,7 @@ Tasks: echo the table, figure out how to pass variable from form to php
 Start: Wed, 11 Feb 2015 14:02:50 -0800
 End: Wed, 11 Feb 2015 18:42:50 -0800
 Tasks: Working on writing queries.
+
+Start: Wed, 11 Feb 2015 20:32:02 -0800
+End: Thu, 12 Feb 2015 00:22:22 -0800
+Tasks: redo the category drop down menu finished the left queries and clean up code. done
