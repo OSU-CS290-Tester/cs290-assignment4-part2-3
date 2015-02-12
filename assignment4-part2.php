@@ -7,11 +7,7 @@
 <fieldset>
 <legend>Add Video</legend>
 <p>Name: <input type="text" name="videoName" ></p>
-<p>Category: <select name="videoCateg[]">
-<option value="none">none</option>
-<option value="action">action</option>
-<option value="comedy">comedy</option>
-<option value="drama">drama</option></select></p>
+<p>Category:<input type="text" name="videoCategory" > </p>
 <p>Length: <input type="number" name="length" min=0></p>
 <input type="submit" value="submit" name="addVideo">
 </fieldset>
@@ -91,36 +87,7 @@ if(isset($_POST['availabilityUpdate'])){
 		$stmt->close();
 
 }
-//Display by category
-if(isset($_POST['displayByCat'])){
-	echo $_POST['choice'];
-	if($_POST['choice'] == 'action') {
-		$displayCategory = 'action';
-	}else if($_POST['choice'] == 'comedy') {
-		$displayCategory = 'comedy';
-	}else if ($_POST['choice'] == 'drama') {
-		$displayCategory = 'drama';
-	}
 
-		if (!($stmt = $mysqli->prepare("SELECT name, category, length, rented FROM video_inventory WHERE category=(?)"))) {
-			echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
-}
-		if($_POST['checkInOut'] == 'in') {
-			$inOut = false;
-		} else if ($_POST['checkInOut'] == 'out') {
-			$inOut = true;
-		}
-		if (!$stmt->bind_param("is", $inOut, $_POST['checkInOutItem'])) {
-			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-		}
-		if (!$stmt->execute()) {
-			echo "Execute failed: (" . $mysqli->errno . ") " . $mysqli->error;
-		}
-
-		$stmt->close();
-
-}
-	
 
 
 //add video
@@ -153,12 +120,9 @@ if(isset($_POST['addVideo'])){
 		}
 	}
 	
-	if($_POST['videoCateg'][0] == 'none'){
-		echo "You have to choose a category<br>";
-	} else {
-		$cat=$_POST['videoCateg'];
+		$cat=$_POST['videoCategory'];
 		//echo $cat[0];
-	}
+	
 	if($_POST['length'] <= 0){
 		echo "The length has to be positive integer<br>";
 	} else {
@@ -170,22 +134,65 @@ if(isset($_POST['addVideo'])){
 }
 	
 	if(isset($name, $cat, $leng)){
-		if (!$stmt->bind_param("ssi", $name, $cat[0], $leng)) {
+		if (!$stmt->bind_param("ssi", $name, $cat, $leng)) {
 			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
 	}
 	if (!$stmt->execute()) {
 		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
 	}
+	$stmt->close();
 		echo "all set";
 	}else {
 		echo "something is not right";
 	}
 }
 
+
+//Display by category
+if(isset($_POST['displayByCat'])){
+	echo $_POST['choice'];
+	if ($_POST['choice'] == 'allMovie') {
+		if (!($stmt = $mysqli->prepare("SELECT name, category, length, rented FROM video_inventory"))) {
+			echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
+		} 
+	} else {
+		if (!($stmt = $mysqli->prepare("SELECT name, category, length, rented FROM video_inventory WHERE category=(?)"))) {
+			echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
+		}
+		if (!$stmt->bind_param("s", $_POST['choice'])) {
+			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		}
+	}
+		
+}
+	if(isset($_POST['deleteAllVideo'])){
+		echo "in side";
+		if (!($stmt = $mysqli->prepare("DELETE FROM video_inventory"))) {
+			echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
+		}
+		if (!$stmt->execute()) {
+		echo "Execute failed: (" . $mysqli->errno . ") " . $mysqli->error;
+		}
+		echo "in side";
+		$stmt->close();
+		echo "in side";
+		 echo '<table border="1"><tr>
+		<td>Name</td><td>Category</td><td>Length</td><td>Availability</td><td></td><td></td></tr>';
+		echo '</table>';
+		 
+		
+
+} else {
+
+
+
 //display list
-if (!($stmt = $mysqli->prepare("SELECT name, category, length, rented FROM video_inventory"))) {
+if(!isset($_POST['displayByCat']) && !isset($_POST['deleteAllVideo'])){
+	if (!($stmt = $mysqli->prepare("SELECT name, category, length, rented FROM video_inventory"))) {
     echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
 }
+}
+
 if (!$stmt->execute()) {
     echo "Execute failed: (" . $mysqli->errno . ") " . $mysqli->error;
 }
@@ -209,7 +216,7 @@ if (!$stmt->bind_result($out_name, $out_cat, $out_leng, $out_rented)) {
 		
 		echo '<td>';
 		echo '<form method="POST" action="assignment4-part2.php">';
-		echo "Check-" . "in" . '<input type="radio" name="checkInOut" value=' . "in" . '>';
+		echo "Check-" . "in" . '<input type="radio" name="checkInOut" checked value=' . "in" . '>';
 		echo "out" . '<input type="radio" name="checkInOut" value=' . "out" . '>';
 		echo '<input type="hidden" name="checkInOutItem" value=' . $out_name . '>';
 		echo '<input type="submit" value="submit" name=' . "availabilityUpdate" . '></form>';
@@ -221,20 +228,43 @@ if (!$stmt->bind_result($out_name, $out_cat, $out_leng, $out_rented)) {
 		echo '><input type="submit" value="Delete" name=' . "deleteVideo" . '></form>';
 		echo '</td>';
 	}
+		
   echo '</table>';
+	$stmt->close();
+}
+if (!($stmt = $mysqli->prepare("SELECT DISTINCT category FROM video_inventory"))) {
+    echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
+}
+if (!$stmt->execute()) {
+    echo "Execute failed: (" . $mysqli->errno . ") " . $mysqli->error;
+}
+$out_category=NULL;
+if (!$stmt->bind_result($out_category)) {
+    echo "Binding output parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+}
+
   echo '<h3>' . "Display Videos by Category " . '</h3>';
 	echo '<form method="POST" action="assignment4-part2.php">';
 	echo '<select name=' . "choice" . '>';
-		echo '<option value=' . "action" . '>' . "action" . '</option>';
-		echo '<option value=' . "comedy" . '>' . "comedy" . '</option>';
-		echo '<option value=' . "drama" . '>' . "drama" . '</option>';
-		echo '<option value=' . "allMovie" . '>' . "all movies" . '</option>';
+	while ($stmt->fetch()){
+		echo '<option value=' . $out_category . '>' . $out_category . '</option>';
+	}
+		
+		echo '<option selected value=' . "allMovie" . '>' . "all movies" . '</option>';
 		
 		echo '<input type="submit" value="submit" name=' . "displayByCat" . '>';
-	
-	echo '</select>';
+		echo '</select>';
 echo '</form>';
-$stmt->close();
+
+echo '<form method="POST" action="assignment4-part2.php">';
+echo '<br>';
+	echo '<input type="submit" value="Delete All Videos" name=' . "deleteAllVideo" . '>';
+echo '</form>';
+
+
+
+
+
 
 
 ?>
